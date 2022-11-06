@@ -1,4 +1,6 @@
-// require path
+const { Schema, model, Types } = require('mongoose');
+const dateFormat = require('../utils/dateFormat');
+const reactionSchema = require('./Reaction');
 
 
 const ThoughtSchema = new Schema(
@@ -23,7 +25,10 @@ const ThoughtSchema = new Schema(
         toJSON: {
             getters: true,
             virtuals: true
-        }
+
+        },
+        _id: false
+
     }
 );
 

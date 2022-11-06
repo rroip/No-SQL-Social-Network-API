@@ -1,4 +1,5 @@
 const { Schema, model, Types } = require('mongoose');
+const { schema } = require('./Thought');
 
 const UserSchema = new Schema(
     {
@@ -14,14 +15,15 @@ const UserSchema = new Schema(
             required: true,
             match: [/.+@.+\..+/, 'Please enter a valid e-mail address']
         },
-        thoughts: [],
-        friends: [this]
+        thoughts: [{ type: Schema.Types.ObjectId, ref: "Thought"}],
+        friends: [{ type: Schema.Types.ObjectId, ref: "User"}]
     },
     {
         toJSON: {
             getters: true,
             virtuals: true
-        }
+        },
+        _id: false
     }
 );
 
