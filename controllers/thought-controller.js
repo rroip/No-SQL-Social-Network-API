@@ -37,7 +37,9 @@ const thoughtController = {
             .catch(err => res.json(err));
     },
     updateThought({ params, body }, res) {
-        Thought.findByIdAndUpdate({ _id: params.thoughtId }, body, { runValidators: true, new: true })
+        Thought.findByIdAndUpdate({ _id: params.thoughtId },
+             body,
+              { runValidators: true, new: true })
             .then(thoughtData => {
                 if (!thoughtData) {
                     res.status(404).json({ message: 'No user found with this ID!' });
@@ -48,45 +50,54 @@ const thoughtController = {
             .catch(err => res.json(err));
     },
     deleteThought({ params }, res) {
-        Thought.findByIdAndDelete({ _id: params.thoughtId }, { runValidators: true, new: true })
+        Thought.findOneAndRemove({ _id: params.thoughtId })
             .then(thoughtData => {
                 if (!thoughtData) {
-                    res.status(404).json({ message: 'No user found with this ID!' });
+                    return res.status(404).json({ message: 'No user found with this ID!' });
+                }
+                return User.findOneAndUpdate(
+                    { thoughts: params.thoughtId },
+                    { $pull: { thoughts: params.thoughtId } },
+                    { new: true }
+                );
+            })
+            .then((thoughtData) => {
+                if (!thoughtData){
+                    return res.status(404).json({ message: 'Thought deleted, but no user found with that ID!'})
+                }
+                res.json({ message:"Thought Deleted!" });
+            })
+            .catch(err => res.json(err));
+    },
+    addReaction({ params, body }, res) {
+        Thought.findOneAndUpdate(
+            { _id: params.thoughtId },
+            { $push: { reactions: body } },
+            { new: true, runValidators: true }
+        )
+            .then(thoughtData => {
+                if (!thoughtData) {
+                    res.status(404).json({ message: 'Incorrect reaction data!' });
                     return;
                 }
                 res.json(thoughtData);
             })
             .catch(err => res.json(err));
     },
-    addReaction({params, body}, res){
+    deleteReaction({ params }, res) {
         Thought.findOneAndUpdate(
-            {_id: params.thoughtId},
-            {$push: {reactions: body}},
+            { _id: params.thoughtId },
+            { $pull: { reactions: { reactionId: params.reactionId } } },
             { new: true, runValidators: true }
         )
-        .then(thoughtData => {
-            if (!thoughtData) {
-                res.status(404).json({ message: 'Incorrect reaction data!' });
-                return;
-            }
-            res.json(thoughtData);
-        })
-        .catch(err => res.json(err));
-    },
-    deleteReaction({params}, res){
-        Thought.findOneAndUpdate(
-            {_id: params.thoughtId},
-            {$pull: {reactions: {reactionId : params.reactionId}}},
-            { new: true, runValidators: true }
-        )
-        .then(thoughtData => {
-            if (!thoughtData) {
-                res.status(404).json({ message: 'Incorrect reaction data!' });
-                return;
-            }
-            res.json(thoughtData);
-        })
-        .catch(err => res.json(err));
+            .then(thoughtData => {
+                if (!thoughtData) {
+                    res.status(404).json({ message: 'Incorrect reaction data!' });
+                    return;
+                }
+                res.json(thoughtData);
+            })
+            .catch(err => res.json(err));
     }
 }
 
